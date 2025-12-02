@@ -1,6 +1,5 @@
 /* ===========================
    GLOBAL ELEMENT REFERENCES
-   (Note: particles.js setup is assumed removed)
    =========================== */
 const btn = document.getElementById('btn');
 const roleSelect = document.getElementById('role');
@@ -12,41 +11,52 @@ const overlay = document.getElementById('calculation-overlay');
 const progressFill = document.querySelector('.progress-fill');
 const scanText = document.getElementById('scan-text');
 
-// CRITICAL FIX: Ensure this element is defined
-// const errorMessageDiv = document.getElementById('error-message'); 
-
 /* ===========================
-   EVENT LISTENER (THE CORE ENTRY POINT) - UPDATED FOR STABILITY
+   EVENT LISTENER
    =========================== */
 btn.addEventListener('click', () => {
-    // CRITICAL FIX: Get the error message element *inside* the function 
-    // to ensure the element exists when the button is clicked.
     const errorMessageDiv = document.getElementById('error-message');
 
-    // 1. Clear any previous error message
     errorMessageDiv.style.display = 'none';
     errorMessageDiv.innerHTML = '';
 
-    // 2. Validation Check (Thematic Error Message)
     if (githubInput.value.trim() === "" || roleSelect.value === "" || expSelect.value === "") {
-        // Display the in-site error message
         errorMessageDiv.innerHTML = ' Please complete all required fields!';
         errorMessageDiv.style.display = 'block';
-        return; // Stop execution
+        return;
     }
 
-    // 3. Capture and prepare data
     const currentRole = roleSelect.value;
     const currentExp = parseInt(expSelect.value);
     const currentGithub = githubInput.value;
 
-    // 4. Initiate the sequence
     startCalculationSequence(currentRole, currentExp, currentGithub);
 });
 
-// NOTE: All other functions (startCalculationSequence, showResult, etc.) remain unchanged.
 /* ===========================
-   BRUTAL NOTES LOGIC (3-Tier Grading)
+   BACKEND CALL
+   =========================== */
+async function callBackend(role, exp, githubLink) {
+    try {
+        const res = await fetch("/api/analyze", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                github: githubLink,
+                experience: exp,
+                role: role
+            })
+        });
+
+        return await res.json();
+    } catch (err) {
+        console.error("Backend Error:", err);
+        return { error: "Backend failed" };
+    }
+}
+
+/* ===========================
+   BRUTAL NOTES LOGIC
    =========================== */
 function generateBrutalNotes(role, exp, githubLink) {
     const expNum = parseInt(exp);
@@ -62,16 +72,13 @@ function generateBrutalNotes(role, exp, githubLink) {
                     <i class="fa-solid fa-skull-crossbones failure-icon"></i>
                     <h4>CRITICAL AUDIT FAILURE</h4>
                 </div>
-                <h5 class="audit-status">PERFORMANCE: **HIGH RISK**</h5>
+                <h5 class="audit-status"><strong>HIGH RISK</strong></h5>
                 <ul class="audit-list">
-                    <li>Based on the provided link status (missing), your digital presence is severely lacking for a role at your claimed experience level.</li>
-                    <li>Minimal to zero original high-impact projects detected.</li>
-                    <li>Lack of consistent, long-term public commit history.</li>
-                    <li>No specialized content or tutorial projects demonstrating domain authority.</li>
+                    <li>Digital presence severely lacking.</li>
+                    <li>No consistent public commit activity found.</li>
+                    <li>Insufficient high-impact projects.</li>
                 </ul>
-                <p class="audit-verdict">
-                    **Verdict:** Your digital footprint is nonexistent or inadequate. Focus on building demonstrable projects and elevating public work. Valuation is **highly speculative**.
-                </p>
+                <p class="audit-verdict"><strong>Verdict:</strong> Build strong public work to improve valuation.</p>
             </div>
         `;
     } else if (expNum < 3 || !isHighRole) {
@@ -81,44 +88,37 @@ function generateBrutalNotes(role, exp, githubLink) {
                     <i class="fa-solid fa-lightbulb good-icon"></i>
                     <h4>VALUATION AUDIT</h4>
                 </div>
-                <h5 class="audit-status">PERFORMANCE: **GOOD START**</h5>
+                <h5 class="audit-status"><strong>GOOD START</strong></h5>
                 <ul class="audit-list">
-                    <li>Basic digital presence established, suitable for an entry or junior level position.</li>
-                    <li>Profile shows foundational skills and relevant learning activity.</li>
-                    <li>The path to ${role} is clearly defined but requires deeper specialization.</li>
+                    <li>Decent digital presence for early-level roles.</li>
+                    <li>Shows learning momentum in key areas.</li>
                 </ul>
-                <p class="audit-verdict">
-                    **Verdict:** Continue innovating and building momentum. Focus on **consistency and scale** in your next two high-impact projects. This foundation is solid.
-                </p>
+                <p class="audit-verdict"><strong>Verdict:</strong> Build 2 more high-impact projects to grow fast.</p>
             </div>
         `;
-    } else if (expNum >= 3 && isHighRole && hasLink) {
+    } else {
         notesHTML = `
             <div class="audit-section outstanding">
                 <div class="audit-header">
                     <i class="fa-solid fa-trophy outstanding-icon"></i>
                     <h4>VALUATION: OUTSTANDING</h4>
                 </div>
-                <h5 class="audit-status">SYSTEM OVERRIDE: **IMPRESSIVE**</h5>
+                <h5 class="audit-status"><strong>IMPRESSIVE</strong></h5>
                 <ul class="audit-list">
-                    <li>Multiple high-impact projects detected. Consistent, high-velocity commit history confirmed.</li>
-                    <li>Advanced construction skills demonstrating a deep understanding of domain concepts.</li>
-                    <li>Profile aligns perfectly with the valuation of a high-ranking ${role}.</li>
+                    <li>High-impact projects detected.</li>
+                    <li>Strong commit frequency.</li>
+                    <li>Profile aligned with senior-level expectations.</li>
                 </ul>
-                <p class="audit-verdict">
-                    **Verdict:** Your digital footprint is exceptional. We see innovation, skill, and mastery. We are **proud** of this work. Continue to lead the field.
-                </p>
+                <p class="audit-verdict"><strong>Verdict:</strong> Exceptional digital footprint. Keep dominating.</p>
             </div>
         `;
     }
 
-    // FINAL FIX: Replace double asterisks with <strong> for HTML bolding
-    return notesHTML.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    return notesHTML;
 }
 
-
 /* ===========================
-   CALCULATION SEQUENCE & RESULT DISPLAY
+   LOADING & RESULT LOGIC
    =========================== */
 function startCalculationSequence(role, exp, githubLink) {
     overlay.style.display = 'flex';
@@ -139,29 +139,21 @@ function startCalculationSequence(role, exp, githubLink) {
 
         if (progress >= 100) {
             clearInterval(interval);
-            setTimeout(() => {
+            setTimeout(async () => {
                 overlay.style.display = 'none';
-                showResult(role, exp, githubLink);
+                await showResult(role, exp, githubLink);
             }, 500);
         }
     }, 150);
 }
 
+async function showResult(role, exp, githubLink) {
+    // 🔥 CALL BACKEND HERE
+    const backendData = await callBackend(role, exp, githubLink);
 
-function showResult(role, exp, githubLink) {
-    // Salary calculation logic (INR)
-    const baseSalaries = {
-        "Backend Developer": 500000, "Frontend Developer": 450000, "Fullstack Developer": 600000, 
-        "AI Engineer": 900000, "Data Scientist": 850000, "ML Engineer": 950000,         
-        "Blockchain Developer": 1100000, "Cloud Engineer": 700000,
-    };
-    let base = baseSalaries[role] || 400000;
-    let multiplier = 1 + (exp * 0.25);
-    let estimatedSalary = Math.floor(base * multiplier);
-    let minSalary = estimatedSalary - 50000;
-    let maxSalary = estimatedSalary + 50000;
-    let minStr = minSalary.toLocaleString('en-IN');
-    let maxStr = maxSalary.toLocaleString('en-IN');
+    let salaryRange = backendData.salary_range || "N/A";
+    let explanation = backendData.explanation || "No explanation provided.";
+    let confidence = backendData.confidence || "N/A";
 
     const brutalNotes = generateBrutalNotes(role, exp, githubLink);
     mainForm.style.display = 'none';
@@ -173,10 +165,12 @@ function showResult(role, exp, githubLink) {
             <p class="result-role">${role} // Rank ${exp}</p>
 
             <div class="result-circle">
-                 <span class="result-label">ESTIMATED ANNUAL RANGE</span>
-                 <div class="result-value">₹${minStr}</div>
-                 <div class="result-value" style="font-size: 1.2rem; opacity: 0.7;">to ₹${maxStr}</div>
+                 <span class="result-label">AI ESTIMATED RANGE</span>
+                 <div class="result-value">${salaryRange}</div>
+                 <div class="result-value" style="font-size: 1rem; opacity: 0.7;">Confidence: ${confidence}</div>
             </div>
+
+            <p style="margin-top: 20px; opacity: 0.8;">${explanation}</p>
             
             ${brutalNotes}
             
