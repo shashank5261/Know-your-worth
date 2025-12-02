@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Know Your Worth | Data Oracle</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div id="particles-js"></div>
+
+    <div id="calculation-overlay">
+        <div class="scanner-content">
+            <div class="scan-line"></div>
+            <i class="fa-solid fa-microchip scanner-icon"></i>
+            <h2 id="scan-text">INITIALIZING SCAN...</h2>
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+        </div>
+    </div>
+
+
+    <div class="main-content container">
+        <div class="navbar">
+            <div class="nav-buttons">
+                <a href="https://x.com/Shashank1291814" class="nav-btn glow-effect" target="_blank">
+                    <img src="x.svg" alt="X" class="x-icon" />
+                </a>
+                <a href="https://github.com/shashank5261" class="nav-btn glow-effect" target="_blank">
+                    <i class="fa-brands fa-github"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="header-section fade-in-up">
+            <h1>SYSTEM:<span class="highlight">VALUATION</span></h1>
+            <p class="subtitle">Query the digital lattice to compute your market standing.</p>
+        </div>
+
+        <div class="card holographic-card fade-in-up delay-1">
+            <div class="card-content" id="main-form">
+                <div id="error-message" class="error-console"></div>
+                <div class="form-group">
+                    <label>ACCESS GITHUB NODE</label>
+                    <div class="input-wrapper cyber-input">
+                        <i class="fa-brands fa-github input-icon"></i>
+                        <input id="github" type="text" placeholder="github.com/username" autocomplete="off"/>
+                        <span class="input-border"></span>
+                    </div>
+
+                    <label>TEMPORAL EXPERIENCE (YEARS)</label>
+                    <div class="input-wrapper cyber-input">
+                        <select id="exp">
+                            <option value="" disabled selected>SELECT LEVEL</option>
+                            <option value="0">Fresher (Rank 0)</option>
+                            <option value="1">1 Year (Rank I)</option>
+                            <option value="2">2 Years (Rank II)</option>
+                            <option value="3">3 Years (Rank III)</option>
+                            <option value="4">4 Years (Rank IV)</option>
+                            <option value="5">5+ Years (Veteran)</option>
+                        </select>
+                        <span class="input-border"></span>
+                    </div>
+
+                   <label>TARGET DESIGNATION</label>
+                    <div class="input-wrapper cyber-input">
+                        <select id="role">
+                            <option value="" disabled selected>SELECT CLASS</option>
+                            <option>Backend Developer</option>
+                            <option>Frontend Developer</option>
+                            <option>Fullstack Developer</option>
+                            <option>ML Engineer</option>          
+                            <option>Blockchain Developer</option> 
+                            <option>Cloud Engineer</option>       
+                            <option>AI Engineer</option>
+                            <option>Data Scientist</option>
+                        </select>
+                        <span class="input-border"></span>
+                    </div>
+
+                    <button id="btn" class="cyber-button">
+                        <span class="btn-text">INITIATE CALCULATION SEQUENCE</span>
+                        <span class="btn-glitch"></span>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="result-area"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
