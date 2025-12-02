@@ -1,15 +1,10 @@
-import express from "express";
-import axios from "axios";
-import dotenv from "dotenv";
-import cors from "cors";
+const axios = require("axios");
 
-dotenv.config();
-const app = express();
+module.exports = async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
-app.use(express.json());
-app.use(cors());
-
-app.post("/analyze", async (req, res) => {
   try {
     const { github, experience, role } = req.body;
 
@@ -36,26 +31,23 @@ Return JSON:
 `;
 
     const response = await axios.post(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
-,
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
       { contents: [{ parts: [{ text: prompt }] }] },
       { params: { key: process.env.GEMINI_API_KEY } }
     );
 
     const text = response.data.candidates[0].content.parts[0].text;
+
     let cleaned = text
-  .replace(/```json/g, "")
-  .replace(/```/g, "")
-  .trim();
+      .replace(/```json/gi, "")
+      .replace(/```/g, "")
+      .trim();
 
-const data = JSON.parse(cleaned)
+    const data = JSON.parse(cleaned);
 
-    res.json(data);
-
+    return res.status(200).json(data);
   } catch (err) {
     console.error("Error:", err.response?.data || err.message);
-    res.json({ error: "Something went wrong" });
+    return res.status(500).json({ error: "Something went wrong" });
   }
-});
-
-app.listen(3000, () => console.log("Backend running on http://localhost:3000"));
+};
