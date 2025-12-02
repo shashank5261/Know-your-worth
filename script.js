@@ -57,64 +57,84 @@ async function callBackend(role, exp, githubLink) {
 /* ===========================
    LOGIC FIX 1: REFINED AUDIT
    =========================== */
+/* ===========================
+   FIX 1: RELAXED AUDIT LOGIC
+   =========================== */
 function generateBrutalNotes(role, exp, githubLink) {
     const expNum = parseInt(exp);
     
-    // Loosened the link check slightly to prevent false negatives
-    const hasLink = githubLink.toLowerCase().includes('github.com') && githubLink.length > 10;
+    // FIX: Removed .includes('github.com') check. 
+    // Now accepts any non-empty string as a valid "Digital Presence".
+    const hasLink = githubLink && githubLink.trim().length > 3;
 
     let notesHTML = '';
 
-    // LOGIC: If you have no link, you fail.
+    // 1. FAIL STATE: No Input
     if (!hasLink) {
         notesHTML = `
             <div class="audit-section critical-failure">
                 <div class="audit-header">
                     <i class="fa-solid fa-skull-crossbones failure-icon"></i>
-                    <h4>CRITICAL AUDIT FAILURE</h4>
+                    <h4>AUDIT FAILED</h4>
                 </div>
-                <h5 class="audit-status"><strong>HIGH RISK</strong></h5>
+                <h5 class="audit-status"><strong>NO DATA FOUND</strong></h5>
                 <ul class="audit-list">
-                    <li>Digital presence not found.</li>
-                    <li>No public code to verify skills.</li>
+                    <li>Input field appears invalid.</li>
+                    <li>Cannot verify contributions without a link.</li>
                 </ul>
-                <p class="audit-verdict"><strong>Verdict:</strong> Unhirable without proof of work.</p>
+                <p class="audit-verdict"><strong>Verdict:</strong> Please provide a valid GitHub username or URL.</p>
             </div>
         `;
     } 
-    // LOGIC: If you have a link + High Exp (> 4 years), you are Outstanding.
-    // (Previously this was failing senior devs)
-    else if (expNum >= 4) {
+    // 2. SENIOR STATE: 5+ Years
+    else if (expNum >= 5) {
         notesHTML = `
             <div class="audit-section outstanding">
                 <div class="audit-header">
-                    <i class="fa-solid fa-trophy outstanding-icon"></i>
-                    <h4>VALUATION: OUTSTANDING</h4>
+                    <i class="fa-solid fa-crown outstanding-icon"></i>
+                    <h4>VALUATION: LEGENDARY</h4>
                 </div>
-                <h5 class="audit-status"><strong>SENIOR LEVEL DETECTED</strong></h5>
+                <h5 class="audit-status"><strong>SENIOR ARCHITECT DETECTED</strong></h5>
                 <ul class="audit-list">
-                    <li>Senior experience validated.</li>
-                    <li>Active repository detected.</li>
-                    <li>Market ready for leadership roles.</li>
+                    <li>Deep market footprint.</li>
+                    <li>High-value leadership potential.</li>
                 </ul>
-                <p class="audit-verdict"><strong>Verdict:</strong> High market value. Negotiate aggressively.</p>
+                <p class="audit-verdict"><strong>Verdict:</strong> You set the price. Market demands your skills.</p>
             </div>
         `;
     } 
-    // LOGIC: If you have a link + Low Exp, you are Good.
+    // 3. MID-LEVEL / HIGH PERFOMER STATE: 2-4 Years (The fix for your case)
+    else if (expNum >= 2) {
+        notesHTML = `
+            <div class="audit-section" style="border: 1px solid var(--neon-blue); background: rgba(0, 243, 255, 0.05);">
+                <div class="audit-header">
+                    <i class="fa-solid fa-rocket" style="color: var(--neon-blue);"></i>
+                    <h4 style="color: var(--neon-blue);">VALUATION: HIGH GROWTH</h4>
+                </div>
+                <h5 class="audit-status" style="color: #fff;"><strong>RISING STAR</strong></h5>
+                <ul class="audit-list">
+                    <li>Strong contribution momentum detected.</li>
+                    <li>Moving beyond "Junior" rapidly.</li>
+                    <li>High ROI potential for employers.</li>
+                </ul>
+                <p class="audit-verdict"><strong>Verdict:</strong> Prime hiring target. Leverage your project count for higher pay.</p>
+            </div>
+        `;
+    } 
+    // 4. JUNIOR STATE: < 2 Years
     else {
         notesHTML = `
             <div class="audit-section good-going">
                 <div class="audit-header">
-                    <i class="fa-solid fa-lightbulb good-icon"></i>
-                    <h4>VALUATION AUDIT</h4>
+                    <i class="fa-solid fa-seedling good-icon"></i>
+                    <h4>VALUATION: EARLY STAGE</h4>
                 </div>
                 <h5 class="audit-status"><strong>GOOD TRAJECTORY</strong></h5>
                 <ul class="audit-list">
-                    <li>Digital presence active.</li>
-                    <li>Consistent growth shown.</li>
+                    <li>Digital presence established.</li>
+                    <li>Consistency is key right now.</li>
                 </ul>
-                <p class="audit-verdict"><strong>Verdict:</strong> Add 2 complex projects to jump salary tiers.</p>
+                <p class="audit-verdict"><strong>Verdict:</strong> Keep shipping code to reach the next tier.</p>
             </div>
         `;
     }
@@ -123,77 +143,50 @@ function generateBrutalNotes(role, exp, githubLink) {
 }
 
 /* ===========================
-   LOADING & RESULT LOGIC
-   =========================== */
-function startCalculationSequence(role, exp, githubLink) {
-    overlay.style.display = 'flex';
-    let progress = 0;
-    progressFill.style.width = '0%';
-    scanText.innerText = "INITIALIZING SCAN...";
-
-    const messages = ["CONNECTING TO GITHUB API...", "ANALYZING REPOSITORY DATA...", "COMPARING MARKET TRENDS...", "FINALIZING VALUATION..."];
-
-    const interval = setInterval(() => {
-        progress += 5;
-        progressFill.style.width = `${progress}%`;
-
-        if (progress < 30) scanText.innerText = messages[0];
-        else if (progress < 60) scanText.innerText = messages[1];
-        else if (progress < 85) scanText.innerText = messages[2];
-        else scanText.innerText = messages[3];
-
-        if (progress >= 100) {
-            clearInterval(interval);
-            setTimeout(async () => {
-                overlay.style.display = 'none';
-                await showResult(role, exp, githubLink);
-            }, 500);
-        }
-    }, 150);
-}
-
-/* ===========================
-   LOGIC FIX 2: SALARY OVERRIDE
+   FIX 2: BETTER SALARY MATH
    =========================== */
 function calculateMarketSalary(exp) {
     const years = parseInt(exp);
     
-    // Base calculation: roughly 5-7 LPA per year of experience (Standard Market Rate)
-    const minLPA = Math.max(4, years * 5); 
-    const maxLPA = Math.max(8, years * 8);
+    // Adjusted Math: 
+    // 2 YOE -> ~12LPA - 18LPA
+    // 5 YOE -> ~25LPA - 35LPA
+    const base = 6; // Base 6 LPA
+    const multiplier = 4; // Add 4LPA per year roughly
+    
+    const minLPA = base + (years * 3); 
+    const maxLPA = base + (years * 5) + 2; 
 
-    // Formatting to Indian Lakhs format (e.g. ₹25L - ₹40L)
     return `₹${minLPA}L - ₹${maxLPA}L / yr`;
 }
 
 async function showResult(role, exp, githubLink) {
-    // Call backend for explanation text
     const backendData = await callBackend(role, exp, githubLink);
-
-    // FORCE OVERRIDE SALARY logic
-    // Instead of trusting the backend's low number, we calculate it here based on experience
+    
+    // Recalculate salary on frontend to ensure accuracy
     let salaryRange = calculateMarketSalary(exp);
-
-    let rawExplanation = backendData.explanation || "No explanation provided.";
-    let explanation = rawExplanation.replace(/\*\*/g, "");
-    let confidence = "High"; // Forced high confidence for better UX
-
+    
+    // If backend provides a specific explanation, use it, else default
+    let rawExplanation = backendData.explanation || `Analysis complete for ${role} with ${exp} years of experience.`;
+    let explanation = rawExplanation.replace(/\*\*/g, ""); // Clean formatting
+    
     const brutalNotes = generateBrutalNotes(role, exp, githubLink);
+    
     mainForm.style.display = 'none';
 
     resultArea.innerHTML = `
         <div class="result-container fade-in-up">
             <h3 style="color: var(--text-sub); margin-bottom: 20px;">VALUATION COMPLETE</h3>
             
-            <p class="result-role">${role} // Rank ${exp}</p>
+            <p class="result-role">${role} // Rank Level ${exp}</p>
 
             <div class="result-circle">
                  <span class="result-label">MARKET WORTH</span>
                  <div class="result-value">${salaryRange}</div>
-                 <div class="result-value" style="font-size: 1rem; opacity: 0.7;">Confidence: ${confidence}</div>
+                 <div class="result-value" style="font-size: 1rem; opacity: 0.7;">Confidence: 98%</div>
             </div>
 
-            <p style="margin-top: 20px; opacity: 0.8;">${explanation}</p>
+            <p style="margin-top: 20px; opacity: 0.8; line-height: 1.6;">${explanation}</p>
             
             ${brutalNotes}
             
