@@ -320,7 +320,7 @@ select option { background: var(--bg-accent); color: white; }
 .result-label { color: var(--neon-cyan); font-size: 0.9rem; letter-spacing: 1px; margin-bottom: 5px;}
 
 .result-value {
-    font-size: 2rem;
+    font-size: 1.6rem;
     font-weight: 700;
     color: white;
     text-shadow: 0 0 10px rgba(255,255,255,0.5);
