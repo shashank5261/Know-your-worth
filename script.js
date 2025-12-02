@@ -152,7 +152,11 @@ async function showResult(role, exp, githubLink) {
     const backendData = await callBackend(role, exp, githubLink);
 
     let salaryRange = backendData.salary_range || "N/A";
-    let explanation = backendData.explanation || "No explanation provided.";
+   let rawExplanation = backendData.explanation || "No explanation provided.";
+    
+    // This removes the ** stars globally from the text
+    let explanation = rawExplanation.replace(/\*\*/g, "");
+
     let confidence = backendData.confidence || "N/A";
 
     const brutalNotes = generateBrutalNotes(role, exp, githubLink);
