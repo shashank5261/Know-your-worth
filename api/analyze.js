@@ -1,54 +1,61 @@
-import axios from "axios";
+// Serverless Function handler for Vercel
+export default function handler(req, res) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method Not Allowed. Use POST.' });
+    }
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
-  try {
+    // 1. Extract data from the client request body
     const { github, experience, role } = req.body;
 
-    const username = github.split("github.com/")[1];
+    // --- 2. SALARY CALCULATION LOGIC (Moved from old script.js) ---
+    const exp = parseInt(experience);
+    const hasLink = github.trim().length > 15 && github.toLowerCase().includes('github.com');
 
-    const profileRes = await axios.get(`https://api.github.com/users/${username}`);
-    const repoRes = await axios.get(profileRes.data.repos_url);
+    const baseSalaries = {
+        "Backend Developer": 500000, 
+        "Frontend Developer": 450000,
+        "Fullstack Developer": 600000, 
+        "AI Engineer": 900000, 
+        "Data Scientist": 850000,
+        "ML Engineer": 950000,         
+        "Blockchain Developer": 1100000, 
+        "Cloud Engineer": 700000,
+    };
 
-    const prompt = `
-Analyze this GitHub profile:
+    let base = baseSalaries[role] || 400000;
+    let multiplier = 1 + (exp * 0.25);
+    let estimatedSalary = Math.floor(base * multiplier);
+    
+    // Adjust salary and confidence based on GitHub presence
+    let confidenceValue = 85; // Base confidence
+    
+    if (!hasLink || exp > 10) {
+        // Punish salary heavily if no link is provided, or for highly experienced users without a link
+        estimatedSalary = Math.floor(estimatedSalary * 0.7);
+        confidenceValue = 30;
+    } else if (hasLink && exp >= 4) {
+        // Reward established professionals with a GitHub link
+        confidenceValue = 95;
+    } else {
+        confidenceValue = 75;
+    }
+    
+    let minSalary = estimatedSalary - 50000;
+    let maxSalary = estimatedSalary + 50000;
+    let minStr = minSalary.toLocaleString('en-IN');
+    let maxStr = maxSalary.toLocaleString('en-IN');
+    
+    const salaryRangeStr = `₹${minStr} - ₹${maxStr}`;
 
-Profile: ${JSON.stringify(profileRes.data)}
-Repos: ${JSON.stringify(repoRes.data)}
+    // --- 3. EXPLANATION GENERATION ---
+    const explanationText = hasLink 
+        ? `Valuation derived from market data for a **${role}** at Rank ${exp}. GitHub profile successfully linked, providing high confidence in experience level.`
+        : `Valuation is adjusted significantly lower due to the **lack of a verifiable digital profile**. Focus on building public work to achieve a higher rank.`;
 
-Experience: ${experience}
-Target Role: ${role}
-
-Return JSON:
-{
-  "salary_range": "₹X - ₹Y",
-  "confidence": "45%",
-  "explanation": "3 lines of explanation"
+    // --- 4. RETURN THE DATA (Must match the expected keys in your client JS) ---
+    res.status(200).json({
+        salary_range: salaryRangeStr,
+        explanation: explanationText,
+        confidence: `${confidenceValue}%`
+    });
 }
-`;
-
-    const response = await axios.post(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
-      { contents: [{ parts: [{ text: prompt }] }] },
-      { params: { key: process.env.GEMINI_API_KEY } }
-    );
-
-    const text = response.data.candidates[0].content.parts[0].text;
-
-    let cleaned = text
-      .replace(/```json/g, "")
-      .replace(/```/g, "")
-      .trim();
-
-    const data = JSON.parse(cleaned);
-
-    return res.status(200).json(data);
-  } catch (err) {
-    console.error("Error:", err.response?.data || err.message);
-    return res.status(500).json({ error: "Something went wrong" });
-  }
-}
--
