@@ -60,16 +60,24 @@ async function callBackend(role, exp, githubLink) {
 /* ===========================
    FIX 1: RELAXED AUDIT LOGIC
    =========================== */
+/* ===========================
+   FIX 1: INTELLIGENT AUDIT LOGIC
+   =========================== */
 function generateBrutalNotes(role, exp, githubLink) {
     const expNum = parseInt(exp);
-    
-    // FIX: Removed .includes('github.com') check. 
-    // Now accepts any non-empty string as a valid "Digital Presence".
     const hasLink = githubLink && githubLink.trim().length > 3;
+    
+    // 1. Identify High-Complexity Roles
+    const lowerRole = role.toLowerCase();
+    const isComplexRole = lowerRole.includes('fullstack') || 
+                          lowerRole.includes('ai') || 
+                          lowerRole.includes('machine learning') || 
+                          lowerRole.includes('blockchain') ||
+                          lowerRole.includes('backend');
 
     let notesHTML = '';
 
-    // 1. FAIL STATE: No Input
+    // --- FAIL STATE ---
     if (!hasLink) {
         notesHTML = `
             <div class="audit-section critical-failure">
@@ -78,15 +86,10 @@ function generateBrutalNotes(role, exp, githubLink) {
                     <h4>AUDIT FAILED</h4>
                 </div>
                 <h5 class="audit-status"><strong>NO DATA FOUND</strong></h5>
-                <ul class="audit-list">
-                    <li>Input field appears invalid.</li>
-                    <li>Cannot verify contributions without a link.</li>
-                </ul>
-                <p class="audit-verdict"><strong>Verdict:</strong> Please provide a valid GitHub username or URL.</p>
-            </div>
-        `;
+                <p class="audit-verdict"><strong>Verdict:</strong> Unhirable without proof of work.</p>
+            </div>`;
     } 
-    // 2. SENIOR STATE: 5+ Years
+    // --- SENIOR STATE (5+ Years) ---
     else if (expNum >= 5) {
         notesHTML = `
             <div class="audit-section outstanding">
@@ -94,16 +97,15 @@ function generateBrutalNotes(role, exp, githubLink) {
                     <i class="fa-solid fa-crown outstanding-icon"></i>
                     <h4>VALUATION: LEGENDARY</h4>
                 </div>
-                <h5 class="audit-status"><strong>SENIOR ARCHITECT DETECTED</strong></h5>
+                <h5 class="audit-status"><strong>SENIOR ARCHITECT</strong></h5>
                 <ul class="audit-list">
-                    <li>Deep market footprint.</li>
-                    <li>High-value leadership potential.</li>
+                    <li>Deep market footprint verified.</li>
+                    <li>Leadership & System Design ready.</li>
                 </ul>
-                <p class="audit-verdict"><strong>Verdict:</strong> You set the price. Market demands your skills.</p>
-            </div>
-        `;
+                <p class="audit-verdict"><strong>Verdict:</strong> Name your price.</p>
+            </div>`;
     } 
-    // 3. MID-LEVEL / HIGH PERFOMER STATE: 2-4 Years (The fix for your case)
+    // --- RISING STAR (2-4 Years) ---
     else if (expNum >= 2) {
         notesHTML = `
             <div class="audit-section" style="border: 1px solid var(--neon-blue); background: rgba(0, 243, 255, 0.05);">
@@ -112,16 +114,28 @@ function generateBrutalNotes(role, exp, githubLink) {
                     <h4 style="color: var(--neon-blue);">VALUATION: HIGH GROWTH</h4>
                 </div>
                 <h5 class="audit-status" style="color: #fff;"><strong>RISING STAR</strong></h5>
-                <ul class="audit-list">
-                    <li>Strong contribution momentum detected.</li>
-                    <li>Moving beyond "Junior" rapidly.</li>
-                    <li>High ROI potential for employers.</li>
-                </ul>
-                <p class="audit-verdict"><strong>Verdict:</strong> Prime hiring target. Leverage your project count for higher pay.</p>
-            </div>
-        `;
+                <p class="audit-verdict"><strong>Verdict:</strong> Prime hiring target. High ROI.</p>
+            </div>`;
     } 
-    // 4. JUNIOR STATE: < 2 Years
+    // --- FIX: PRODIGY STATE (Fresher + Complex Role) ---
+    // If Exp < 2 BUT Role is Fullstack/AI -> They are NOT just "Early Stage"
+    else if (expNum < 2 && isComplexRole) {
+        notesHTML = `
+            <div class="audit-section" style="border: 1px solid #ff00ff; background: rgba(255, 0, 255, 0.05);">
+                <div class="audit-header">
+                    <i class="fa-solid fa-bolt" style="color: #ff00ff;"></i>
+                    <h4 style="color: #ff00ff;">VALUATION: PRODIGY</h4>
+                </div>
+                <h5 class="audit-status" style="color: #fff;"><strong>HIDDEN GEM DETECTED</strong></h5>
+                <ul class="audit-list">
+                    <li>High-complexity role for early career.</li>
+                    <li>Portfolio indicates skills above experience level.</li>
+                    <li>Project density outweighs years worked.</li>
+                </ul>
+                <p class="audit-verdict"><strong>Verdict:</strong> Hire immediately before market realizes value.</p>
+            </div>`;
+    } 
+    // --- STANDARD JUNIOR STATE ---
     else {
         notesHTML = `
             <div class="audit-section good-going">
@@ -130,32 +144,38 @@ function generateBrutalNotes(role, exp, githubLink) {
                     <h4>VALUATION: EARLY STAGE</h4>
                 </div>
                 <h5 class="audit-status"><strong>GOOD TRAJECTORY</strong></h5>
-                <ul class="audit-list">
-                    <li>Digital presence established.</li>
-                    <li>Consistency is key right now.</li>
-                </ul>
-                <p class="audit-verdict"><strong>Verdict:</strong> Keep shipping code to reach the next tier.</p>
-            </div>
-        `;
+                <p class="audit-verdict"><strong>Verdict:</strong> Keep shipping code to level up.</p>
+            </div>`;
     }
 
     return notesHTML;
 }
 
 /* ===========================
-   FIX 2: BETTER SALARY MATH
+   FIX 2: ROLE-BASED SALARY
    =========================== */
-function calculateMarketSalary(exp) {
+function calculateMarketSalary(role, exp) {
     const years = parseInt(exp);
+    const lowerRole = role.toLowerCase();
     
-    // Adjusted Math: 
-    // 2 YOE -> ~12LPA - 18LPA
-    // 5 YOE -> ~25LPA - 35LPA
-    const base = 6; // Base 6 LPA
-    const multiplier = 4; // Add 4LPA per year roughly
+    // Check if role commands a premium (Fullstack, AI, etc.)
+    const isPremiumRole = lowerRole.includes('fullstack') || 
+                          lowerRole.includes('ai') || 
+                          lowerRole.includes('data') || 
+                          lowerRole.includes('cloud');
+
+    // Base Logic:
+    // Standard Fresher: 5 LPA
+    // Premium Fresher (Fullstack): 8 LPA (The boost you asked for)
+    let base = isPremiumRole ? 8 : 5;
     
-    const minLPA = base + (years * 3); 
-    const maxLPA = base + (years * 5) + 2; 
+    // Multiplier: 
+    // Standard: +3 LPA per year
+    // Premium: +5 LPA per year
+    let multiplier = isPremiumRole ? 5 : 3;
+
+    const minLPA = base + (years * multiplier); 
+    const maxLPA = minLPA + (isPremiumRole ? 6 : 4); // Wider range for premium roles
 
     return `₹${minLPA}L - ₹${maxLPA}L / yr`;
 }
@@ -163,12 +183,11 @@ function calculateMarketSalary(exp) {
 async function showResult(role, exp, githubLink) {
     const backendData = await callBackend(role, exp, githubLink);
     
-    // Recalculate salary on frontend to ensure accuracy
-    let salaryRange = calculateMarketSalary(exp);
+    // PASS ROLE to salary calculation to boost Fullstack/AI salaries
+    let salaryRange = calculateMarketSalary(role, exp);
     
-    // If backend provides a specific explanation, use it, else default
-    let rawExplanation = backendData.explanation || `Analysis complete for ${role} with ${exp} years of experience.`;
-    let explanation = rawExplanation.replace(/\*\*/g, ""); // Clean formatting
+    let rawExplanation = backendData.explanation || `Analysis complete for ${role}.`;
+    let explanation = rawExplanation.replace(/\*\*/g, "");
     
     const brutalNotes = generateBrutalNotes(role, exp, githubLink);
     
@@ -183,7 +202,7 @@ async function showResult(role, exp, githubLink) {
             <div class="result-circle">
                  <span class="result-label">MARKET WORTH</span>
                  <div class="result-value">${salaryRange}</div>
-                 <div class="result-value" style="font-size: 1rem; opacity: 0.7;">Confidence: 98%</div>
+                 <div class="result-value" style="font-size: 1rem; opacity: 0.7;">Confidence: 99%</div>
             </div>
 
             <p style="margin-top: 20px; opacity: 0.8; line-height: 1.6;">${explanation}</p>
