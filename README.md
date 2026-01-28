@@ -8,3 +8,5 @@
 suggest skills related to the individual's domain which are not presesnt
 ## Tech stack 
 HTML, CSS, Express.js
+## Deployed link
+https://know-your-worth-bay.vercel.app/
